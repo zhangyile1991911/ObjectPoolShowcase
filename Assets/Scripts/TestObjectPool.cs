@@ -1,13 +1,14 @@
 using UnityEngine;
 using GameSystem.ObjectPool;
+//通常借り貸しテスト 
 public class TestObjectPool : MonoBehaviour
 {
-    public GameObject TestPrefab;
     GameObjectPool _pool;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         _pool = FindFirstObjectByType<GameObjectPool>();
+        
     }
 
     // Update is called once per frame
@@ -16,8 +17,8 @@ public class TestObjectPool : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {//通常な使い方
             var handler = _pool.Get();
-            handler.Instance.transform.SetParent(transform);
-            handler.Instance.SetActive(true);
+            handler.instance.transform.SetParent(transform);
+            handler.instance.SetActive(true);
             PrimeTween.Tween.Delay(this, duration: 2.0f, onComplete: () => handler.Release());
         }
         
@@ -25,7 +26,7 @@ public class TestObjectPool : MonoBehaviour
         {
             //借りたオブジェクト、親ノードを設定されない場合
             var handler = _pool.Get();
-            handler.Instance.SetActive(true);
+            handler.instance.SetActive(true);
         }
 
         if (Input.GetKeyDown(KeyCode.A))
@@ -35,8 +36,8 @@ public class TestObjectPool : MonoBehaviour
             for (int i = 0; i < 5; i++)
             {
                 var h = _pool.Get();
-                h.Instance.SetActive(true);
-                h.Instance.transform.SetParent(transform);
+                h.instance.SetActive(true);
+                h.instance.transform.SetParent(transform);
             }
             PrimeTween.Tween.Delay(this, duration: 2.0f, onComplete: () => Destroy(this.gameObject));
         }
@@ -45,7 +46,7 @@ public class TestObjectPool : MonoBehaviour
         {
             //借りたオブジェクト、無闇に破棄する
             var handler = _pool.Get();
-            Destroy(handler.Instance);
+            Destroy(handler.instance);
         }
         
         if (Input.GetKeyDown(KeyCode.F))
@@ -63,8 +64,8 @@ public class TestObjectPool : MonoBehaviour
             var handler = _pool.Get();
             handler.Release();
             //すぐエラーが出る
-            handler.Instance.SetActive(true);
-            handler.Instance.transform.SetParent(transform);
+            handler.instance.SetActive(true);
+            handler.instance.transform.SetParent(transform);
         }
         
         if (Input.GetKeyDown(KeyCode.B))
@@ -77,8 +78,8 @@ public class TestObjectPool : MonoBehaviour
         {
             using (var handler = _pool.Get())
             {//Disposeを活用して自動で返却される
-                handler.Instance.gameObject.SetActive(true);
-                handler.Instance.transform.SetParent(this.transform);
+                handler.instance.gameObject.SetActive(true);
+                handler.instance.transform.SetParent(this.transform);
                 Debug.Log("test automatically release");
             }
         }

@@ -7,13 +7,14 @@ namespace GameSystem.ObjectPool
 {
     public class ObjectHandler: IDisposable
     {
-        private readonly GameObjectPool BelongsTo;
+        private readonly GameObjectPool _belongsTo;
        
-        public readonly string name;
+        public readonly string Name;
         // public GameObject gameObject => Instance;
         // public Transform transform => Instance.transform;
-        
-        public GameObject Instance
+
+        public Transform ParentNode => _instance.transform;
+        public GameObject instance
         {
             get
             {
@@ -21,8 +22,8 @@ namespace GameSystem.ObjectPool
                 StackTrace st = new StackTrace();
                 var frame = st.GetFrame(1);
                 var methodBase = frame.GetMethod();
-                LastCallStack = methodBase?.DeclaringType?.FullName + "." + methodBase?.Name;
-                LastUsedDateTime = DateTime.Now;
+                lastCallStack = methodBase?.DeclaringType?.FullName + "." + methodBase?.Name;
+                lastUsedDateTime = DateTime.UtcNow;
     #endif
                 return _instance;
             }
@@ -31,13 +32,13 @@ namespace GameSystem.ObjectPool
         
     #if UNITY_EDITOR
         public readonly DateTime CreateDateTime;
-        public DateTime LastUsedDateTime { get;private set; }
-        public String LastCallStack { get; private set; }
+        public DateTime lastUsedDateTime { get;private set; }
+        public String lastCallStack { get; private set; }
             
         public void PrintDebug()
         {
-            Debug.Log($"LastCallStack: {LastCallStack}\n" +
-                      $"LastUsedDateTime: {LastUsedDateTime}\n" +
+            Debug.Log($"LastCallStack: {lastCallStack}\n" +
+                      $"LastUsedDateTime: {lastUsedDateTime}\n" +
                       $"CreateDateTime: {CreateDateTime}");
         }
     #endif
@@ -49,11 +50,11 @@ namespace GameSystem.ObjectPool
         public ObjectHandler(GameObjectPool pool,GameObject inst)
         {
             _instance = inst;
-            BelongsTo = pool;
+            _belongsTo = pool;
             isReleased = false;
-            name = inst.name;
+            Name = inst.name;
     #if UNITY_EDITOR
-            CreateDateTime = DateTime.Now;
+            CreateDateTime = DateTime.UtcNow;
     #endif
         }
         
@@ -65,7 +66,7 @@ namespace GameSystem.ObjectPool
             _instance.transform.localScale = Vector3.one;
             _instance.transform.rotation = Quaternion.identity;
             
-            BelongsTo.Release(this);
+            _belongsTo.Release(this);
             
             _instance.SetActive(false);
             _instance = null;
@@ -79,11 +80,11 @@ namespace GameSystem.ObjectPool
         public bool hasParent => _instance.transform.parent != null;
         internal void IllegalDestroy()
         {
-            BelongsTo.HandlerBeDestroyedIllegal(this);
+            _belongsTo.HandlerBeDestroyedIllegal(this);
             //破棄されたら 手遅れでしたので　何もできない
             //警告を出すしかない
             //コードをチェックして書き直せ
-            Debug.LogError($"{name} is destroyed. It is worry way!!!\n" +
+            Debug.LogError($"{Name} is destroyed. It is worry way!!!\n" +
                            "Please Fix Code!!!\n");
 #if UNITY_EDITOR
             PrintDebug();

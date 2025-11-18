@@ -20,7 +20,7 @@ namespace GameSystem.ObjectPool
                 return;
             }
             //予想外でオブジェクトが廃棄されたら
-            ObjectHandler.IllegalDestroy();
+            ObjectHandler?.IllegalDestroy();
         }
     }
 }

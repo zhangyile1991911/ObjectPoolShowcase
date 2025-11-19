@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -8,6 +9,7 @@ namespace GameSystem.ObjectPool
     {
         [SerializeField]
         private GameObject prefab;
+        public string PrefabName => prefab.name;
         [SerializeField]
         private  int initCapacity = 0;
         [SerializeField]
@@ -24,6 +26,26 @@ namespace GameSystem.ObjectPool
         
         private Queue<GameObject> _pool = null;
         private HashSet<ObjectHandler> _objectHandlers = new ();
+        
+        #if UNITY_EDITOR
+        public IReadOnlyList<ObjectHandler> HandlerList => _objectHandlers.ToList();
+        public int CachedGameObjectCount => _pool.Count;
+        public int BorrowedCount => _objectHandlers.Count;
+        public int HasCreatedObject => _poolIndex;
+        public int MaxBorrowedRecord => _maxBorrowed;
+        public int AbnormalBorrowedCount
+        {
+            get
+            {
+                int count = 0;
+                foreach (var one in _objectHandlers)
+                {
+                    count += one.hasParent ? 0 : 1;
+                }
+                return count;
+            }
+        }
+        #endif
         private int _poolIndex = 0;
         void Awake()
         {
@@ -43,7 +65,6 @@ namespace GameSystem.ObjectPool
                 inst.SetActive(false);
                 _pool.Enqueue(inst);
             }
-            _previousExpandTime = Time.realtimeSinceStartup;
         }
 
         public ObjectHandler Get()
@@ -75,7 +96,7 @@ namespace GameSystem.ObjectPool
 
         public void Release(ObjectHandler handler)
         {
-            if (handler == null)
+            if (handler == null || handler.isReleased)
             {
                 return;
             }
@@ -85,6 +106,7 @@ namespace GameSystem.ObjectPool
             {
                 watchDog.ObjectHandler = null;
             }
+            
             _objectHandlers.Remove(handler);
             
             handler.instance.transform.SetParent(transform);
@@ -115,16 +137,15 @@ namespace GameSystem.ObjectPool
             _objectHandlers.Remove(handler);
         }
         
-        private float _previousExpandTime;
         public void LateUpdate()
         {
-            float diff = Time.realtimeSinceStartup - _previousExpandTime;
+            float diff = Time.realtimeSinceStartup - _lastCheckTime;
             if (diff < checkExpandFrequency) return;
             _smoothedPeak = alpha * _maxBorrowed + (1.0f - alpha) * _smoothedPeak;
             int targetPoolNum = Mathf.CeilToInt(_smoothedPeak * 1.2f);
             ShrinkOrExpandTo(targetPoolNum);
             _maxBorrowed = _currentBorrowed;
-            _previousExpandTime = Time.realtimeSinceStartup;
+            _lastCheckTime = Time.realtimeSinceStartup;
         }
 
         private void ShrinkOrExpandTo(int targetPoolNum)

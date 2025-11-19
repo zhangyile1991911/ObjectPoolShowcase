@@ -10,10 +10,10 @@ namespace GameSystem.ObjectPool
         private readonly GameObjectPool _belongsTo;
        
         public readonly string Name;
-        // public GameObject gameObject => Instance;
-        // public Transform transform => Instance.transform;
-
-        public Transform ParentNode => _instance.transform;
+        public Transform ParentNode => hasParent ?  _instance.transform.parent : null;
+        
+        public int InstanceID => _instance ? _instance.GetInstanceID() : 0;
+        
         public GameObject instance
         {
             get
@@ -23,7 +23,7 @@ namespace GameSystem.ObjectPool
                 var frame = st.GetFrame(1);
                 var methodBase = frame.GetMethod();
                 lastCallStack = methodBase?.DeclaringType?.FullName + "." + methodBase?.Name;
-                lastUsedDateTime = DateTime.UtcNow;
+                lastUsedDateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     #endif
                 return _instance;
             }
@@ -31,15 +31,15 @@ namespace GameSystem.ObjectPool
         
         
     #if UNITY_EDITOR
-        public readonly DateTime CreateDateTime;
-        public DateTime lastUsedDateTime { get;private set; }
-        public String lastCallStack { get; private set; }
+        public readonly long CreateDateTime;
+        public long lastUsedDateTime { get;private set; }
+        public string lastCallStack { get; private set; }
             
         public void PrintDebug()
         {
             Debug.Log($"LastCallStack: {lastCallStack}\n" +
-                      $"LastUsedDateTime: {lastUsedDateTime}\n" +
-                      $"CreateDateTime: {CreateDateTime}");
+                      $"LastUsedDateTime: {DateTimeOffset.FromUnixTimeSeconds(lastUsedDateTime).ToLocalTime().DateTime}\n" +
+                      $"CreateDateTime: {DateTimeOffset.FromUnixTimeSeconds(CreateDateTime).ToLocalTime().DateTime}");
         }
     #endif
         
@@ -54,7 +54,7 @@ namespace GameSystem.ObjectPool
             isReleased = false;
             Name = inst.name;
     #if UNITY_EDITOR
-            CreateDateTime = DateTime.UtcNow;
+            CreateDateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     #endif
         }
         
@@ -62,22 +62,33 @@ namespace GameSystem.ObjectPool
         {
             if (isReleased) return;
             
+            ResetTransform();
+            
+            _belongsTo.Release(this);
+
+            MarkAsReleased();
+        }
+
+        void ResetTransform()
+        {
             _instance.transform.position = Vector3.zero;
             _instance.transform.localScale = Vector3.one;
             _instance.transform.rotation = Quaternion.identity;
-            
-            _belongsTo.Release(this);
-            
             _instance.SetActive(false);
+        }
+        
+        void MarkAsReleased()
+        {
             _instance = null;
             isReleased = true;
         }
+        
         public void Dispose()
         {
             Release();
         }
 
-        public bool hasParent => _instance.transform.parent != null;
+        public bool hasParent => _instance!=null && _instance.transform.parent != null;
         internal void IllegalDestroy()
         {
             _belongsTo.HandlerBeDestroyedIllegal(this);

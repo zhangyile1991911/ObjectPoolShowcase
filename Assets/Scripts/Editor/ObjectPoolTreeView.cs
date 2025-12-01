@@ -77,7 +77,7 @@ namespace Editor
                 },
                 new MultiColumnHeaderState.Column
                 {
-                    headerContent = new GUIContent("貸し出し")
+                    headerContent = new GUIContent("貸出中")
                 },
                 new MultiColumnHeaderState.Column
                 {

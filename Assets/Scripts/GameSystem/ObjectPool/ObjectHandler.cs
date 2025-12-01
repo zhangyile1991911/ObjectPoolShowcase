@@ -34,14 +34,15 @@ namespace GameSystem.ObjectPool
         public readonly long CreateDateTime;
         public long lastUsedDateTime { get;private set; }
         public string lastCallStack { get; private set; }
-            
+    #endif
+        [Conditional("UNITY_EDITOR")]
         public void PrintDebug()
         {
             Debug.Log($"LastCallStack: {lastCallStack}\n" +
                       $"LastUsedDateTime: {DateTimeOffset.FromUnixTimeSeconds(lastUsedDateTime).ToLocalTime().DateTime}\n" +
                       $"CreateDateTime: {DateTimeOffset.FromUnixTimeSeconds(CreateDateTime).ToLocalTime().DateTime}");
         }
-    #endif
+
         
         public bool isReleased { get; private set; }
         private GameObject _instance;
@@ -97,9 +98,8 @@ namespace GameSystem.ObjectPool
             //コードをチェックして書き直せ
             Debug.LogError($"{Name} is destroyed. It is worry way!!!\n" +
                            "Please Fix Code!!!\n");
-#if UNITY_EDITOR
+
             PrintDebug();
-#endif
         }
     }
 }

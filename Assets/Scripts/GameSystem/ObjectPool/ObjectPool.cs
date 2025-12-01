@@ -28,23 +28,23 @@ namespace GameSystem.ObjectPool
         private HashSet<ObjectHandler> _objectHandlers = new ();
         
         #if UNITY_EDITOR
-        public IReadOnlyList<ObjectHandler> HandlerList => _objectHandlers.ToList();
-        public int CachedGameObjectCount => _pool.Count;
-        public int BorrowedCount => _objectHandlers.Count;
-        public int HasCreatedObject => _poolIndex;
-        public int MaxBorrowedRecord => _maxBorrowed;
-        public int AbnormalBorrowedCount
-        {
-            get
+            public IReadOnlyList<ObjectHandler> HandlerList => _objectHandlers.ToList();
+            public int CachedGameObjectCount => _pool.Count;
+            public int BorrowedCount => _objectHandlers.Count;
+            public int HasCreatedObject => _poolIndex;
+            public int MaxBorrowedRecord => _maxBorrowed;
+            public int AbnormalBorrowedCount
             {
-                int count = 0;
-                foreach (var one in _objectHandlers)
+                get
                 {
-                    count += one.hasParent ? 0 : 1;
+                    int count = 0;
+                    foreach (var one in _objectHandlers)
+                    {
+                        count += one.hasParent ? 0 : 1;
+                    }
+                    return count;
                 }
-                return count;
             }
-        }
         #endif
         private int _poolIndex = 0;
         void Awake()
@@ -59,7 +59,7 @@ namespace GameSystem.ObjectPool
         {
             for (int i = 0; i < num; i++,_poolIndex++)
             {
-                GameObject inst = GameObject.Instantiate(prefab, transform, true);
+                GameObject inst = Instantiate(prefab, transform, true);
                 inst.AddComponent<WatchDogComponent>();
                 inst.name = $"{_poolName}_{_poolIndex}";
                 inst.SetActive(false);

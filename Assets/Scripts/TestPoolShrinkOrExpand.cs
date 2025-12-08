@@ -23,7 +23,7 @@ public class TestPoolShrinkOrExpand : MonoBehaviour
             int borrowNum = Mathf.CeilToInt(Random.Range(1, 25));
             for (int i = 0; i < borrowNum; i++)
             {
-                var handler = _pool.Get();
+                var handler = _pool.Rent();
                 handler.instance.transform.SetParent(transform);
                 PrimeTween.Tween.Delay(this, duration: 1.0f+borrowNum*0.1f, onComplete: () => handler.Release());
             }

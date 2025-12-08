@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -18,16 +19,21 @@ namespace GameSystem.ObjectPool
         {
             get
             {
-    #if UNITY_EDITOR
-                StackTrace st = new StackTrace();
-                var frame = st.GetFrame(1);
-                var methodBase = frame.GetMethod();
-                lastCallStack = methodBase?.DeclaringType?.FullName + "." + methodBase?.Name;
-                lastUsedDateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-    #endif
+                RecordGetInstance();
                 return _instance;
             }
         }
+
+        [Conditional("UNITY_EDITOR")]
+        private void RecordGetInstance(
+            [CallerFilePath] string file = "",
+            [CallerMemberName] string methodName = "",
+            [CallerLineNumber] int lineNumber = 0)
+        {
+            lastCallStack = file + "." + methodName+":"+lineNumber;
+            lastUsedDateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
+        
         
         
     #if UNITY_EDITOR

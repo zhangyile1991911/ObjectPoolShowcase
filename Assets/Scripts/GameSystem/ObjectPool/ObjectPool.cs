@@ -67,7 +67,7 @@ namespace GameSystem.ObjectPool
             }
         }
 
-        public ObjectHandler Get()
+        public ObjectHandler Rent()
         {
             if (_pool.Count <= 0)
             {

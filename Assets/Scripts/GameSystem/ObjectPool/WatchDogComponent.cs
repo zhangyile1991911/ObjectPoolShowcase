@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GameSystem.ObjectPool
 {
-    internal class WatchDogComponent : MonoBehaviour
+    public class WatchDogComponent : MonoBehaviour
     {
         public ObjectHandler ObjectHandler;
     

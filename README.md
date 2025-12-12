@@ -123,4 +123,4 @@ public class GameObjectPool
 <img width="100%" src="Assets/tool.jpg">
 
 # アイコン
-<img width="50%" height="50%" src="Assets/objectpoolicon.jpg">
+<img width="25%" height="25%" src="Assets/objectpoolicon.jpg">

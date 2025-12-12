@@ -2,30 +2,33 @@ using GameSystem.ObjectPool;
 using UnityEditor;
 using UnityEngine;
 
-[InitializeOnLoad]
-public static class ObjectPoolHierarchyIcon
+namespace Editor
 {
-    static Texture2D icon;
-
-    static ObjectPoolHierarchyIcon()
+    [InitializeOnLoad]
+    public static class ObjectPoolHierarchyIcon
     {
-        icon = AssetDatabase.LoadAssetAtPath<Texture2D>(
-            "Assets/Resources/logistics.png"
-        );
+        private static readonly Texture2D Icon;
 
-        EditorApplication.hierarchyWindowItemOnGUI += OnHierarchyGUI;
-    }
+        static ObjectPoolHierarchyIcon()
+        {
+            Icon = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                "Assets/Resources/logistics.png"
+            );
 
-    static void OnHierarchyGUI(int instanceID, Rect selectionRect)
-    {
-        var obj = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
-        if (obj == null) return;
+            EditorApplication.hierarchyWindowItemOnGUI += OnHierarchyGUI;
+        }
+
+        static void OnHierarchyGUI(int instanceID, Rect selectionRect)
+        {
+            var obj = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
+            if (obj == null) return;
         
-        if (obj.GetComponent<GameObjectPool>() == null) return;
+            if (obj.GetComponent<GameObjectPool>() == null) return;
 
-        Rect r = new Rect(selectionRect.xMax - 80f,
-            selectionRect.y,
-            16f,16f);
-        GUI.DrawTexture(r, icon);
+            Rect r = new Rect(selectionRect.xMax - 80f,
+                selectionRect.y,
+                16f,16f);
+            GUI.DrawTexture(r, Icon);
+        }
     }
 }

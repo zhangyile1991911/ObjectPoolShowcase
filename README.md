@@ -42,7 +42,7 @@
 ```
 
 エラーがすぐ出てきました
-<img width="100%" src=".git/graphics/errorlog.jpg">
+<img width="100%" src=".github/graphics/errorlog.jpg">
 
 # 借りたオブジェクトを複数回にreleaseされる
 
@@ -217,7 +217,7 @@ public class ColliderListener : MonoBehaviour
 
 
 # 便利なツール
-<img width="100%" src=".git/graphics/tool.jpg">
+<img width="100%" src=".github/graphics/tool.jpg">
 
 # アイコン
-<img width="25%" height="25%" src=".git/graphics/objectpoolicon.jpg">
+<img width="25%" height="25%" src=".github/graphics/objectpoolicon.jpg">

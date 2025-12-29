@@ -1,11 +1,15 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace GameSystem.ObjectPool
 {
     public class WatchDogComponent : MonoBehaviour
     {
+        [DoNotSerialize]
         public ObjectHandler ObjectHandler;
+        [DoNotSerialize]
+        public bool IsBackToPool => ObjectHandler == null;
     
         private void OnDestroy()
         {

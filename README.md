@@ -11,6 +11,7 @@
         onComplete: () => handler.Release());
 ```
 # 借りたオブジェクト、親ノードにアタッチしてない場合
+ - テストSceneは`TestObjectPool`です
  - 下記のコード借りたオブジェクトを親ノードにアタッチしてないという場合ではオブジェクトが逸脱したがプールが適切に回収できる
 ```csharp
     var handler = _pool.Get();
@@ -34,14 +35,14 @@
         onComplete: () => Destroy(this.gameObject));
 ```
 
-借りたオブジェクトが無闇に破棄する
+借りたオブジェクトが無闇に破棄された時
 ```csharp
     var handler = _pool.Get();
     Destroy(handler.instance);
 ```
 
 エラーがすぐ出てきました
-<img width="100%" src="Assets/errorlog.jpg">
+<img width="100%" src=".git/graphics/errorlog.jpg">
 
 # 借りたオブジェクトを複数回にreleaseされる
 
@@ -62,6 +63,7 @@
 ```
 
 # 自動で滑らかに拡大したり縮小したりする
+- テストSceneは`TestPoolShrinkOrExpand`です
 ```csharp
 public class GameObjectPool
 {
@@ -119,8 +121,103 @@ public class GameObjectPool
 }
 ```
 
+# PoolObjectがColliderに入っているうちに回収された時の処理
+- テストSceneは`TestWithCollider`です
+---
+
+### 前提
+Colliderは当たり範囲に入っているObjectを記録する変数を持っている
+
+```
+public class ColliderListener : MonoBehaviour
+{
+    //key=InstanceId
+    protected Dictionary<int,Transform> Actors;
+
+    void Update()
+    {
+        foreach(var one in Actors)
+        {//仮にフレームごとにActorにダメージを与える
+            ApplyDamage(one);
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {//Objectが入った
+        Actors.Add(other.GetInstanceID(),other.transform);
+    }
+
+    void OnTriggerExit(Collider other)
+    {//Objectが離れた
+        Actors.Remove(other.GetInstanceID());
+    }
+}
+```
+
+### 問題
+仮にColliderにいるObjectがとある理由で破棄されたりプールに返却されたりしたら、Colliderが持っているActors変数には無効の参照先がそのままに残ってしまいました。
+
+
+### 問題の対策
+
+- Objectが廃棄された後、OnDestroy関数を呼び出されるという仕組みがあります
+- ObjectがPoolに返却された時に、親オブジェクトが変わるという仕組みがあるので、OnTransformParentChanged関数を呼び出される
+
+上記の2つ仕組みを活用して問題を解決する方法ができます
+新規Componentを作ります
+```
+public class ColliderWatchDog : MonoBehaviour
+{
+    public ColliderListener Owner;
+
+    void OnTransformParentChanged()
+    {
+        Owner.RemoveObject(this.transform);
+    }
+
+    void OnDestroy()
+    {
+        Owner.RemoveObject(this.transform);
+    }
+}
+```
+
+ColliderListenerにRemoveObject関数を追加する
+```
+public class ColliderListener : MonoBehaviour
+{
+    //key=InstanceId
+    protected Dictionary<int,Transform> Actors;
+
+    void OnTriggerEnter(Collider other)
+    {//Objectが入った
+        ColliderWatchDog colliderWatchDog = other.gameObject.AddComponent<ColliderWatchDog>();
+        colliderWatchDog.Owner = this;
+        Actors.Add(other.GetInstanceID(),other.transform);
+    }
+
+    void OnTriggerExit(Collider other)
+    {//Objectが離れた
+        ColliderWatchDog colliderWatchDog = other.gameObject.GetComponent<ColliderWatchDog>();
+        if(colliderWatchDog != null)
+        {
+            colliderWatchDog.Owner = null;
+            Destroy(colliderWatchDog);
+        }
+        Actors.Remove(other.GetInstanceID());
+    }
+
+    void RemoveObject(Transform other)
+    {
+        Actors.Remove(other.GetInstanceID());
+    }
+}
+```
+
+
+
 # 便利なツール
-<img width="100%" src="Assets/tool.jpg">
+<img width="100%" src=".git/graphics/tool.jpg">
 
 # アイコン
-<img width="25%" height="25%" src="Assets/objectpoolicon.jpg">
+<img width="25%" height="25%" src=".git/graphics/objectpoolicon.jpg">

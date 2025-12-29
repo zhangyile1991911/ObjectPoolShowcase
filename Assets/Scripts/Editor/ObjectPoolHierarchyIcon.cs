@@ -7,13 +7,11 @@ namespace Editor
     [InitializeOnLoad]
     public static class ObjectPoolHierarchyIcon
     {
-        private static readonly Texture2D Icon;
+        private static Texture2D Icon;
 
         static ObjectPoolHierarchyIcon()
         {
-            Icon = AssetDatabase.LoadAssetAtPath<Texture2D>(
-                "Assets/Resources/logistics.png"
-            );
+            reloadIcon();
 
             EditorApplication.hierarchyWindowItemOnGUI += OnHierarchyGUI;
         }
@@ -28,7 +26,18 @@ namespace Editor
             Rect r = new Rect(selectionRect.xMax - 80f,
                 selectionRect.y,
                 16f,16f);
+            if(Icon == null)
+            {
+                reloadIcon();
+            }
             GUI.DrawTexture(r, Icon);
+        }
+        
+        static void reloadIcon()
+        {
+            Icon = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                "Assets/Resources/logistics.png"
+            );
         }
     }
 }
